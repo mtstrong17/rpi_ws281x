@@ -29,24 +29,46 @@
 #include <string.h>
 #include <ws2811.h>
 
-ws2811_t ledstring = {
-   .freq = 800000,
-   .dmanum = 5,
-   .channel = {
-	   [0] = {
-		   .gpionum = 18,
-		   .count = 256,
-		   .invert = 0,
-		   .brightness = 32,
-	   },
-	   [1] = {
-		   .gpionum = 0,
-		   .count = 0,
-		   .invert = 0,
-		   .brightness = 0
-	   },
-   },
-};
+// ws2811_t ledstring = {
+//    .freq = 800000,
+//    .dmanum = 5,
+//    .channel = {
+// 	   [0] = {
+// 		   .gpionum = 18,
+// 		   .count = 256,
+// 		   .invert = 0,
+// 		   .brightness = 32,
+// 	   },
+// 	   [1] = {
+// 		   .gpionum = 0,
+// 		   .count = 0,
+// 		   .invert = 0,
+// 		   .brightness = 0
+// 	   },
+//    },
+// };
+
+ws2811_t ws2811_t_create() {
+  ws2811_t ledstring = {
+     .freq = 800000,
+     .dmanum = 5,
+     .channel = {
+  	   [0] = {
+  		   .gpionum = 18,
+  		   .count = 256,
+  		   .invert = 0,
+  		   .brightness = 32,
+  	   },
+  	   [1] = {
+  		   .gpionum = 0,
+  		   .count = 0,
+  		   .invert = 0,
+  		   .brightness = 0
+  	   },
+     },
+  };
+  return ledstring;
+}
 
 void ws2811_set_led(ws2811_t *ws2811, int index, uint32_t value) {
 	ws2811->channel[0].leds[index] = value;

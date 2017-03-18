@@ -41,46 +41,41 @@ import "C"
 import (
 	"errors"
 	"fmt"
-	"unsafe"
 )
 
 type Strip struct {
-	ledCount   uint16
-	pin        uint8
-	freqHz     uint32
-	dma        uint8
-	invert     bool
-	brightness uint8
-	channel    uint8
-	stripType  uint
+	ledstring C.ws2811_t
 }
 
-func NewStrip(stripType uint, ledCount uint16, gpioPin uint8, brightness uint8, channel uint8, invert int) error {
+func NewStrip(stripType uint, ledCount uint16, gpioPin uint8, brightness uint8, channel uint8, invert int) (Strip, error) {
+	var strip Strip
+	ledstring := C.ws2811_t_create()
 	for i := 0; i < 2; i++ {
-		C.ledstring.channel[i].gpionum = C.int(0)
-		C.ledstring.channel[i].count = C.int(0)
-		C.ledstring.channel[i].invert = C.int(0)
-		C.ledstring.channel[i].brightness = C.uint8_t(0)
+		ledstring.channel[i].gpionum = C.int(0)
+		ledstring.channel[i].count = C.int(0)
+		ledstring.channel[i].invert = C.int(0)
+		ledstring.channel[i].brightness = C.uint8_t(0)
 	}
-	C.ledstring.channel[channel].gpionum = C.int(gpioPin)
-	C.ledstring.channel[channel].count = C.int(ledCount)
-	C.ledstring.channel[channel].invert = C.int(invert)
-	C.ledstring.channel[channel].brightness = C.uint8_t(brightness)
-	C.ledstring.channel[channel].strip_type = C.int(stripType)
-	res := int(C.ws2811_init(&C.ledstring))
+	ledstring.channel[channel].gpionum = C.int(gpioPin)
+	ledstring.channel[channel].count = C.int(ledCount)
+	ledstring.channel[channel].invert = C.int(invert)
+	ledstring.channel[channel].brightness = C.uint8_t(brightness)
+	ledstring.channel[channel].strip_type = C.int(stripType)
+	res := int(C.ws2811_init(&ledstring))
 	if res == 0 {
-		return nil
+		strip = Strip{ledstring}
+		return strip, nil
 	} else {
-		return errors.New(fmt.Sprintf("Error ws2811.init.%d", res))
+		return strip, errors.New(fmt.Sprintf("Error ws2811.init.%d", res))
 	}
 }
 
-func Fini() {
-	C.ws2811_fini(&C.ledstring)
+func (s *Strip) Fini() {
+	C.ws2811_fini(&s.ledstring)
 }
 
-func Render() error {
-	res := int(C.ws2811_render(&C.ledstring))
+func (s *Strip) Render() error {
+	res := int(C.ws2811_render(&s.ledstring))
 	if res == 0 {
 		return nil
 	} else {
@@ -88,30 +83,31 @@ func Render() error {
 	}
 }
 
-func Wait() error {
-	res := int(C.ws2811_wait(&C.ledstring))
-	if res == 0 {
-		return nil
-	} else {
-		return errors.New(fmt.Sprintf("Error ws2811.wait.%d", res))
-	}
-}
+// func Wait() error {
+// 	res := int(C.ws2811_wait(&s.ledstring))
+// 	if res == 0 {
+// 		return nil
+// 	} else {
+// 		return errors.New(fmt.Sprintf("Error ws2811.wait.%d", res))
+// 	}
+// }
 
-func SetLed(index int, value uint32) {
-	C.ws2811_set_led(&C.ledstring, C.int(index), C.uint32_t(value))
+func (s *Strip) SetLed(index int, value uint32) {
+	C.ws2811_set_led(&s.ledstring, C.int(index), C.uint32_t(value))
 }
 
 func ColorRGB(red, green, blue uint32) uint32 {
 	return (red << 16) | (green << 8) | blue
 }
+
 func ColorRGBW(red, green, blue, white uint32) uint32 {
 	return (white << 24) | (red << 16) | (green << 8) | blue
 }
 
-func Clear() {
-	C.ws2811_clear(&C.ledstring)
-}
-
-func SetBitmap(a []uint32) {
-	C.ws2811_set_bitmap(&C.ledstring, unsafe.Pointer(&a[0]), C.int(len(a)*4))
-}
+// func Clear() {
+// 	C.ws2811_clear(&s.ledstring)
+// }
+//
+// func SetBitmap(a []uint32) {
+// 	C.ws2811_set_bitmap(&s.ledstring, unsafe.Pointer(&a[0]), C.int(len(a)*4))
+// }
