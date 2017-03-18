@@ -44,10 +44,29 @@ import (
 	"unsafe"
 )
 
-func Init(gpioPin int, ledCount int, brightness int) error {
-	C.ledstring.channel[0].gpionum = C.int(gpioPin)
-	C.ledstring.channel[0].count = C.int(ledCount)
-	C.ledstring.channel[0].brightness = C.uint8_t(brightness)
+type Strip struct {
+	ledCount   uint16
+	pin        uint8
+	freqHz     uint32
+	dma        uint8
+	invert     bool
+	brightness uint8
+	channel    uint8
+	stripType  uint
+}
+
+func NewStrip(stripType uint, ledCount uint16, gpioPin uint8, brightness uint8, channel uint8, invert int) error {
+	for i := 0; i < 2; i++ {
+		C.ledstring.channel[i].gpionum = C.int(0)
+		C.ledstring.channel[i].count = C.int(0)
+		C.ledstring.channel[i].invert = C.int(0)
+		C.ledstring.channel[i].brightness = C.uint8_t(0)
+	}
+	C.ledstring.channel[channel].gpionum = C.int(gpioPin)
+	C.ledstring.channel[channel].count = C.int(ledCount)
+	C.ledstring.channel[channel].invert = C.int(invert)
+	C.ledstring.channel[channel].brightness = C.uint8_t(brightness)
+	C.ledstring.channel[channel].strip_type = C.int(stripType)
 	res := int(C.ws2811_init(&C.ledstring))
 	if res == 0 {
 		return nil
@@ -80,6 +99,13 @@ func Wait() error {
 
 func SetLed(index int, value uint32) {
 	C.ws2811_set_led(&C.ledstring, C.int(index), C.uint32_t(value))
+}
+
+func ColorRGB(red, green, blue uint32) uint32 {
+	return (red << 16) | (green << 8) | blue
+}
+func ColorRGBW(red, green, blue, white uint32) uint32 {
+	return (white << 24) | (red << 16) | (green << 8) | blue
 }
 
 func Clear() {
