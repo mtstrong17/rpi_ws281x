@@ -45,6 +45,7 @@ import (
 
 type Strip struct {
 	ledstring C.ws2811_t
+	ledCount  int
 }
 
 func NewStrip(stripType uint, ledCount uint16, gpioPin uint8, brightness uint8, channel uint8, invert int) (Strip, error) {
@@ -63,7 +64,7 @@ func NewStrip(stripType uint, ledCount uint16, gpioPin uint8, brightness uint8, 
 	ledstring.channel[channel].strip_type = C.int(stripType)
 	res := int(C.ws2811_init(&ledstring))
 	if res == 0 {
-		strip = Strip{ledstring}
+		strip = Strip{ledstring, int(ledCount)}
 		return strip, nil
 	} else {
 		return strip, errors.New(fmt.Sprintf("Error ws2811.init.%d", res))
@@ -81,6 +82,10 @@ func (s *Strip) Render() error {
 	} else {
 		return errors.New(fmt.Sprintf("Error ws2811.render.%d", res))
 	}
+}
+
+func (s *Strip) NumPixels() int {
+	return s.ledCount
 }
 
 // func Wait() error {
@@ -102,6 +107,36 @@ func ColorRGB(red, green, blue uint32) uint32 {
 
 func ColorRGBW(red, green, blue, white uint32) uint32 {
 	return (white << 24) | (red << 16) | (green << 8) | blue
+}
+
+func ShiftColor(color uint32, goal uint32, step uint32) uint32 {
+	w := (color & 0xff000000) >> 24
+	r := (color & 0x00ff0000) >> 16
+	g := (color & 0x0000ff00) >> 8
+	b := (color & 0x000000ff)
+
+	w2 := (goal & 0xff000000) >> 24
+	r2 := (goal & 0x00ff0000) >> 16
+	g2 := (goal & 0x0000ff00) >> 8
+	b2 := (goal & 0x000000ff)
+
+	bitShift := func(bit1, bit2 uint32) uint32 {
+		if bit1 < bit2 {
+			if (bit1 + step) > bit2 {
+				return bit2
+			}
+			return bit1 + step
+		}
+		if bit1 > bit2 {
+			if (bit1 - step) < bit2 {
+				return bit2
+			}
+			return bit1 - bit2
+		}
+		return bit1
+	}
+
+	return bitShift(w, w2) | bitShift(r, r2) | bitShift(g, g2) | bitShift(b, b2)
 }
 
 // func Clear() {
