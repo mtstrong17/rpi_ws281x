@@ -43,9 +43,25 @@ import (
 	"fmt"
 )
 
+const SK6812_STRIP_RGBW = 0x18100800
+const SK6812_STRIP_RBGW = 0x18100008
+const SK6812_STRIP_GRBW = 0x18081000
+const SK6812_STRIP_GBRW = 0x18080010
+const SK6812_STRIP_BRGW = 0x18001008
+const SK6812_STRIP_BGRW = 0x18000810
+const SK6812_SHIFT_WMASK = 0xf0000000
+
+// 3 color R, G and B ordering
+const WS2811_STRIP_RGB = 0x00100800
+const WS2811_STRIP_RBG = 0x00100008
+const WS2811_STRIP_GRB = 0x00081000
+const WS2811_STRIP_GBR = 0x00080010
+const WS2811_STRIP_BRG = 0x00001008
+const WS2811_STRIP_BGR = 0x00000810
+
 type Strip struct {
 	ledstring C.ws2811_t
-	ledCount  int
+	LedCount  int
 }
 
 func NewStrip(stripType uint, ledCount uint16, gpioPin uint8, brightness uint8, channel uint8, invert int) (Strip, error) {
@@ -85,7 +101,7 @@ func (s *Strip) Render() error {
 }
 
 func (s *Strip) NumPixels() int {
-	return s.ledCount
+	return s.LedCount
 }
 
 // func Wait() error {
@@ -107,6 +123,12 @@ func ColorRGB(red, green, blue uint32) uint32 {
 
 func ColorRGBW(red, green, blue, white uint32) uint32 {
 	return (white << 24) | (red << 16) | (green << 8) | blue
+}
+
+func (s *Strip) SetStrip(color uint32) {
+	for i := 0; i < s.LedCount; i++ {
+		s.SetLed(i, color)
+	}
 }
 
 func ShiftColor(color uint32, goal uint32, step uint32) uint32 {
