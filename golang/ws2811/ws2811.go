@@ -116,6 +116,9 @@ func (s *Strip) NumPixels() int {
 func (s *Strip) SetLed(index int, value uint32) {
 	C.ws2811_set_led(&s.ledstring, C.int(index), C.uint32_t(value))
 }
+func (s *Strip) SetLedBrightness(index int, value uint32,brightness uint8) {
+	C.ws2811_set_led_bightness(&s.ledstring, C.int(index), C.uint32_t(value),C.uint8_t(brightness))
+}
 
 func ColorRGB(red, green, blue uint32) uint32 {
 	return (red << 16) | (green << 8) | blue

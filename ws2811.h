@@ -66,6 +66,7 @@ extern "C" {
 struct ws2811_device;
 
 typedef uint32_t ws2811_led_t;                   //< 0xWWRRGGBB
+typedef uint8_t ws2811_led_brightness_t;                   //< 0xWWRRGGBB
 typedef struct
 {
     int gpionum;                                 //< GPIO Pin with PWM alternate function, 0 if unused
@@ -73,6 +74,7 @@ typedef struct
     int count;                                   //< Number of LEDs, 0 if channel is unused
     int strip_type;                              //< Strip color layout -- one of WS2811_STRIP_xxx constants
     ws2811_led_t *leds;                          //< LED buffers, allocated by driver based on count
+    ws2811_led_brightness_t *led_brightness;                //< LED buffers, allocated by driver based on count
     uint8_t brightness;                          //< Brightness value between 0 and 255
     uint8_t wshift;                              //< White shift value
     uint8_t rshift;                              //< Red shift value
