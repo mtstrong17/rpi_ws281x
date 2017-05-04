@@ -523,6 +523,7 @@ ws2811_return_t ws2811_init(ws2811_t *ws2811)
         ws2811_channel_t *channel = &ws2811->channel[chan];
 
         channel->leds = malloc(sizeof(ws2811_led_t) * channel->count);
+        channel->led_brightness = malloc(sizeof(ws2811_led_brightness_t) * channel->count);
         if (!channel->leds)
         {
             ws2811_cleanup(ws2811);
@@ -530,6 +531,7 @@ ws2811_return_t ws2811_init(ws2811_t *ws2811)
         }
 
         memset(channel->leds, 0, sizeof(ws2811_led_t) * channel->count);
+        memset(channel->led_brightness, channel->brightness, sizeof(ws2811_led_brightness_t) * channel->count);
 
         if (!channel->strip_type)
         {
@@ -641,10 +643,11 @@ ws2811_return_t ws2811_render(ws2811_t *ws2811)
     {
         ws2811_channel_t *channel = &ws2811->channel[chan];
         int wordpos = chan;
-        const int scale = (channel->brightness & 0xff) + 1;
+        // const int scale = (channel->brightness & 0xff) + 1;
 
         for (i = 0; i < channel->count; i++)                // Led
         {
+          int scale = (channel->led_brightness[i] & 0xff) + 1;
             uint8_t color[] =
             {
                 (((channel->leds[i] >> channel->rshift) & 0xff) * scale) >> 8, // red

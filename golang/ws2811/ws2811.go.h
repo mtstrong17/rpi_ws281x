@@ -73,6 +73,10 @@ ws2811_t ws2811_t_create() {
 void ws2811_set_led(ws2811_t *ws2811, int index, uint32_t value) {
 	ws2811->channel[0].leds[index] = value;
 }
+void ws2811_set_led_bightness(ws2811_t *ws2811, int index, uint32_t value, uint8_t brightness) {
+  ws2811->channel[0].leds[index] = value;
+  ws2811->channel[0].led_brightness[index] = brightness;
+}
 
 void ws2811_clear(ws2811_t *ws2811) {
 	for (int chan = 0; chan < RPI_PWM_CHANNELS; chan++) {
